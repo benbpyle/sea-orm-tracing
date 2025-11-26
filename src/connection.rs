@@ -100,6 +100,10 @@ impl TracedConnection {
             db.statement = field::Empty,
             db.rows_affected = field::Empty,
             db.duration_ms = field::Empty,
+            db.name = field::Empty,
+            server.address = field::Empty,
+            server.port = field::Empty,
+            peer.service = field::Empty,
             otel.status_code = field::Empty,
             error.message = field::Empty,
             slow_query = field::Empty,
@@ -112,7 +116,20 @@ impl TracedConnection {
 
         // Record database name if configured
         if let Some(db_name) = &self.config.database_name {
-            tracing::debug!(parent: &span, db.name = %db_name, "Database operation");
+            span.record("db.name", db_name.as_str());
+        }
+
+        // Record server address and port for X-Ray service map
+        if let Some(addr) = &self.config.server_address {
+            span.record("server.address", addr.as_str());
+        }
+        if let Some(port) = self.config.server_port {
+            span.record("server.port", port as i64);
+        }
+
+        // Record peer service for X-Ray trace map node naming
+        if let Some(peer) = &self.config.peer_service {
+            span.record("peer.service", peer.as_str());
         }
 
         // Record SQL statement if configured

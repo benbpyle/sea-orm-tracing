@@ -40,6 +40,21 @@ pub struct TracingConfig {
     /// Custom database name to include in spans (useful for multi-database setups).
     /// Default: `None`
     pub database_name: Option<String>,
+
+    /// Server address (hostname) for the database.
+    /// Used by X-Ray and other APM tools to show the database as a separate node on the service map.
+    /// Default: `None`
+    pub server_address: Option<String>,
+
+    /// Server port for the database.
+    /// Default: `None`
+    pub server_port: Option<u16>,
+
+    /// Peer service name for the database.
+    /// This is used by X-Ray to display the database as a named node on the trace map.
+    /// If not set, X-Ray will use server_address if available.
+    /// Default: `None`
+    pub peer_service: Option<String>,
 }
 
 impl Default for TracingConfig {
@@ -51,6 +66,9 @@ impl Default for TracingConfig {
             record_row_counts: true,
             target: "sea_orm_tracing",
             database_name: None,
+            server_address: None,
+            server_port: None,
+            peer_service: None,
         }
     }
 }
@@ -108,6 +126,31 @@ impl TracingConfig {
         self
     }
 
+    /// Set the server address (hostname) for the database.
+    ///
+    /// This enables APM tools like AWS X-Ray to show the database as a separate
+    /// node on the service/trace map.
+    pub fn with_server_address(mut self, address: impl Into<String>) -> Self {
+        self.server_address = Some(address.into());
+        self
+    }
+
+    /// Set the server port for the database.
+    pub fn with_server_port(mut self, port: u16) -> Self {
+        self.server_port = Some(port);
+        self
+    }
+
+    /// Set the peer service name for the database.
+    ///
+    /// This is used by AWS X-Ray and other APM tools to display the database
+    /// as a named node on the trace map. Common values: "postgresql", "mysql",
+    /// or a custom name like "users-db".
+    pub fn with_peer_service(mut self, name: impl Into<String>) -> Self {
+        self.peer_service = Some(name.into());
+        self
+    }
+
     /// Create a development-friendly configuration with full logging enabled.
     ///
     /// **Warning**: Do not use in production as it logs all SQL and parameters.
@@ -119,6 +162,9 @@ impl TracingConfig {
             record_row_counts: true,
             target: "sea_orm_tracing",
             database_name: None,
+            server_address: None,
+            server_port: None,
+            peer_service: None,
         }
     }
 
@@ -131,6 +177,9 @@ impl TracingConfig {
             record_row_counts: true,
             target: "sea_orm_tracing",
             database_name: None,
+            server_address: None,
+            server_port: None,
+            peer_service: None,
         }
     }
 }
